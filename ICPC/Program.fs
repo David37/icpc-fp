@@ -135,9 +135,47 @@ let commaSprinkler input =
     | true -> let commaPeriodList,wordOccuranceList= createInitialState 0 (splitString input) [] []
               ((addCommas 0 (List.length commaPeriodList) wordOccuranceList commaPeriodList commaPeriodList)) |> (createNewString 0 "" (wordOccuranceList))
     | _ -> None
-//commaSprinkler "please sit spot. sit spot, sit. spot here now here." // <| TEST INPUT HERE
+
+
+
+let isValidRiver input = //Checks to see if the input given for river is valid
+    let charList = Seq.toList(input) // string must have 2 words, cannot be empty string, cannot end and start with a whitespace
+    match charList<>[] && List.length (splitString input) >= 2 && (List.last charList)<>' ' && (List.head charList) <>' ' with
+    | true ->   let rec checkCharacters i charList=
+                    match charList with
+                    | [] -> true
+                    | head::tail -> let chrVal= head |> int
+                                    let validChr asciiVal=(asciiVal >=97 && asciiVal <=122) || (asciiVal>=65 && asciiVal<=90) // string must be lower or upper case character
+                                    match validChr chrVal with // String cannot start with a special character 
+                                    | false ->  let nextChr= match tail with
+                                                             | [] ->'0'
+                                                             | innerHead::_ -> innerHead
+                                                match head=' ' && nextChr |> int |> validChr with 
+                                                | true->  checkCharacters 0 tail // resets character counter after a valid whitespace
+                                                | _ -> false
+                                    | true -> match i<80 with //single word cannot be larger than 80 characters note: starting index is 0
+                                               | true -> checkCharacters (i+1) tail
+                                               | _ -> false
+                checkCharacters 0 charList
+    | _ -> false
+
+
+
+let rec testLineLength text i length  lineWordList=
+    let charList = Seq.toList(text)
+    match charList with
+    | [] -> false
+    | head::tail -> match head=' ' with//if charcater is space means it is a new word
+                    | true -> match i>=length with
+                              | true -> testLineLength text (i+1) length  (lineWordList)//cant add to current line
+                              | false -> testLineLength text (i+1) length  (lineWordList) //adds to current line
+                    | false -> testLineLength text (i+1) length  lineWordList//keep checking the length of the character
+
 let rivers input =
-    failwith "Not implemented"
+    match isValidRiver input with
+    | true -> Some ""
+    | false -> None
+
 
 [<EntryPoint>]
 let main argv =
